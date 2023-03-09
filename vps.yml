@@ -1,0 +1,48 @@
+- name: Server config
+  hosts: all
+  become: yes
+  tasks:
+  - name: install packages
+    pacman:
+      name: ufw
+      state: present
+
+  - name: sshd_config
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: "{{ item.pattern }}"
+      line: "{{ item.line }}"
+      validate: sshd -t -f %s
+    register: sshd_config
+    loop:
+      - { pattern: "^PermitRootLogin",                 line: "PermitRootLogin no" }
+      - { pattern: "^PubkeyAuthentication",            line: "PubkeyAuthentication yes" }
+      - { pattern: "^PasswordAuthentication",          line: "PasswordAuthentication no" }
+      - { pattern: "^PermitEmptyPasswords",            line: "PermitEmptyPasswords no" }
+      - { pattern: "^ChallengeResponseAuthentication", line: "ChallengeResponseAuthentication no" }
+
+  - name: restart sshd
+    service:
+      name: sshd
+      state: restarted
+    when: sshd_config.changed
+
+  - name: set default ufw rules
+    ufw:
+      direction: "{{ item.direction }}"
+      policy: "{{ item.policy }}"
+    loop:
+      - { direction: "incoming", policy: "deny" }
+      - { direction: "outgoing", policy: "allow" }
+      - { direction: "routed",   policy: "deny" }
+
+  - name: allow incoming ssh
+    ufw:
+      direction: in
+      rule: allow
+      port: "{{ ansible_port }}"
+      proto: tcp
+
+  - name: enable and start ufw
+    ufw:
+      state: enabled

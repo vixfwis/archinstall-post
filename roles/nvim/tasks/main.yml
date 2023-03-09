@@ -1,0 +1,59 @@
+- name: install nvim
+  become: yes
+  pacman:
+    name:
+      - neovim
+      - git
+    state: present
+
+- name: create dot folders for nvim
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+  loop:
+    - "{{ ansible_env.HOME }}/.local/share/nvim/site/autoload"
+    - "{{ ansible_env.HOME }}/.config/nvim"
+
+- name: copy vimplug
+  copy:
+    src: plug.vim
+    dest: "{{ ansible_env.HOME }}/.local/share/nvim/site/autoload/plug.vim"
+
+- name: copy config
+  copy:
+    src: init.vim
+    dest: "{{ ansible_env.HOME }}/.config/nvim/init.vim"
+
+- name: fetch plugins
+  command: nvim --headless -c ":PlugUpdate" -c ":qa"
+
+- name: create dot folders for nvim as root
+  become: yes
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+  when: copy_user_config_for_root
+  loop:
+    - "/root/.local/share/nvim/site/autoload"
+    - "/root/.config/nvim"
+
+- name: copy vimplug as root
+  become: yes
+  copy:
+    src: plug.vim
+    dest: "/root/.local/share/nvim/site/autoload/plug.vim"
+  when: copy_user_config_for_root
+
+- name: copy config as root
+  become: yes
+  copy:
+    src: init.vim
+    dest: "/root/.config/nvim/init.vim"
+  when: copy_user_config_for_root
+
+- name: fetch plugins as root
+  become: yes
+  command: nvim --headless -c ":PlugUpdate" -c ":qa"
+  when: copy_user_config_for_root

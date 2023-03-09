@@ -1,0 +1,42 @@
+- name: make role local tmpdir
+  file:
+    path: "{{ ansible_env.HOME }}/ansible/nvim"
+    state: directory
+    recurse: yes
+
+- name: copy nvim symlinks pkgbuild
+  copy:
+    src: neovim-symlinks.pkgbuild
+    owner: "{{ ansible_user }}"
+    dest: "{{ ansible_env.HOME }}/ansible/nvim/neovim-symlinks.pkgbuild"
+
+- name: build nvim symlinks
+  command:
+    chdir: "{{ ansible_env.HOME }}/ansible/nvim"
+    cmd: makepkg -p neovim-symlinks.pkgbuild -fc
+
+- name: find package name
+  find:
+    paths: "{{ ansible_env.HOME }}/ansible/nvim"
+    patterns: "neovim-symlinks*.pkg.*"
+  register: find
+
+- name: remove conflicts
+  become: yes
+  pacman:
+    name:
+      - vi
+      - vim
+    state: absent
+
+- name: install nvim symlinks
+  become: yes
+  pacman:
+    name: "{{ find.files[0].path }}"
+    state: present
+    force: yes
+
+- name: delete role local tmpdir
+  file:
+    path: "{{ ansible_env.HOME }}/ansible/nvim"
+    state: absent
