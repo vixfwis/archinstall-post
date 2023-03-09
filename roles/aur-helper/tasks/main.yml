@@ -1,0 +1,50 @@
+- name: get effective user
+  command: id -un
+  register: user
+  changed_when: false
+
+- name: check if root
+  fail:
+    msg: "This role can't run as root"
+  when: user.stdout == 'root'
+
+- name: make role local tmpdir
+  file:
+    path: "{{ ansible_env.HOME }}/ansible-aur-helper"
+    state: directory
+    recurse: yes
+
+- name: install git
+  become: yes
+  pacman:
+    name:
+      - git
+    state: present
+
+- name: clone aur helper
+  git:
+    repo: "https://aur.archlinux.org/{{ aur_helper }}.git"
+    dest: "{{ ansible_env.HOME }}/ansible-aur-helper"
+
+- name: build aur helper
+  command:
+    chdir: "{{ ansible_env.HOME }}/ansible-aur-helper"
+    cmd: makepkg -fsc --noconfirm
+
+- name: find package name
+  find:
+    paths: "{{ ansible_env.HOME }}/ansible-aur-helper"
+    patterns: "{{ aur_helper }}*.pkg.*"
+  register: find
+
+- name: install aur helper
+  become: yes
+  pacman:
+    name: "{{ find.files[0].path }}"
+    state: present
+    force: yes
+
+- name: delete role local tmpdir
+  file:
+    path: "{{ ansible_env.HOME }}/ansible-aur-helper"
+    state: absent

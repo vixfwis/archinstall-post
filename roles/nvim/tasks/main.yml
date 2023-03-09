@@ -6,52 +6,47 @@
       - git
     state: present
 
+- name: set global editor
+  lineinfile:
+    path: /etc/environment
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value }}"
+  loop:
+    - { key: "EDITOR", value: "/usr/bin/nvim" }
+
+- name: get effective user
+  command: id -un
+  register: user
+  changed_when: false
+
+- name: get effective user info
+  command: "grep -E \"^{{ user.stdout }}:\" /etc/passwd"
+  register: user
+  changed_when: false
+
+- name: export user info
+  set_fact:
+    e_username: "{{ (user.stdout | split(':'))[0] }}"
+    e_homedir: "{{ (user.stdout | split(':'))[5] }}"
+    e_shell: "{{ (user.stdout | split(':'))[6] }}"
+
 - name: create dot folders for nvim
   file:
     path: "{{ item }}"
     state: directory
     recurse: yes
   loop:
-    - "{{ ansible_env.HOME }}/.local/share/nvim/site/autoload"
-    - "{{ ansible_env.HOME }}/.config/nvim"
+    - "{{ e_homedir }}/.local/share/nvim/site/autoload"
+    - "{{ e_homedir }}/.config/nvim"
 
 - name: fetch vimplug
-  command: "curl -fLo {{ ansible_env.HOME }}/.local/share/nvim/site/autoload/plug.vim \
+  command: "curl -fLo {{ e_homedir }}/.local/share/nvim/site/autoload/plug.vim \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
 
 - name: copy config
   copy:
     src: init.vim
-    dest: "{{ ansible_env.HOME }}/.config/nvim/init.vim"
+    dest: "{{ e_homedir }}/.config/nvim/init.vim"
 
 - name: fetch plugins
   command: nvim --headless -c ":PlugUpdate" -c ":qa"
-
-- name: create dot folders for nvim as root
-  become: yes
-  file:
-    path: "{{ item }}"
-    state: directory
-    recurse: yes
-  when: copy_user_config_for_root
-  loop:
-    - "/root/.local/share/nvim/site/autoload"
-    - "/root/.config/nvim"
-
-- name: fetch vimplug as root
-  become: yes
-  command: "curl -fLo {{ ansible_env.HOME }}/.local/share/nvim/site/autoload/plug.vim \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
-  when: copy_user_config_for_root
-
-- name: copy config as root
-  become: yes
-  copy:
-    src: init.vim
-    dest: "/root/.config/nvim/init.vim"
-  when: copy_user_config_for_root
-
-- name: fetch plugins as root
-  become: yes
-  command: nvim --headless -c ":PlugUpdate" -c ":qa"
-  when: copy_user_config_for_root

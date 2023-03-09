@@ -1,0 +1,5 @@
+- name: debug
+  # become: yes
+  hosts: all
+  roles:
+    - aur-helper

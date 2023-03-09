@@ -1,23 +1,40 @@
+- name: get effective user
+  command: id -un
+  register: user
+  changed_when: false
+
+- name: check if root
+  fail:
+    msg: "This role can't run as root"
+  when: user.stdout == 'root'
+
 - name: make role local tmpdir
   file:
-    path: "{{ ansible_env.HOME }}/ansible/nvim"
+    path: "{{ ansible_env.HOME }}/ansible-nvim"
     state: directory
     recurse: yes
+
+- name: install nvim
+  become: yes
+  pacman:
+    name:
+      - neovim
+    state: present
 
 - name: copy nvim symlinks pkgbuild
   copy:
     src: neovim-symlinks.pkgbuild
     owner: "{{ ansible_user }}"
-    dest: "{{ ansible_env.HOME }}/ansible/nvim/neovim-symlinks.pkgbuild"
+    dest: "{{ ansible_env.HOME }}/ansible-nvim/neovim-symlinks.pkgbuild"
 
 - name: build nvim symlinks
   command:
-    chdir: "{{ ansible_env.HOME }}/ansible/nvim"
+    chdir: "{{ ansible_env.HOME }}/ansible-nvim"
     cmd: makepkg -p neovim-symlinks.pkgbuild -fc
 
 - name: find package name
   find:
-    paths: "{{ ansible_env.HOME }}/ansible/nvim"
+    paths: "{{ ansible_env.HOME }}/ansible-nvim"
     patterns: "neovim-symlinks*.pkg.*"
   register: find
 
@@ -38,5 +55,5 @@
 
 - name: delete role local tmpdir
   file:
-    path: "{{ ansible_env.HOME }}/ansible/nvim"
+    path: "{{ ansible_env.HOME }}/ansible-nvim"
     state: absent

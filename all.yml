@@ -1,0 +1,16 @@
+- name: install roles
+  hosts: all
+  roles:
+    - ufw
+    - sshd
+    - nvim
+    - nvim-symlinks
+    - zsh
+    - aur-helper
+
+- name: install nvim and zsh plugins for root
+  become: yes
+  hosts: all
+  roles:
+    - nvim
+    - zsh

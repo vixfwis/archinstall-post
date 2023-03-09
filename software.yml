@@ -1,7 +1,0 @@
-- name: install role
-  hosts: all
-  roles:
-    - nvim
-    - nvim-symlinks
-    - shell
-  
