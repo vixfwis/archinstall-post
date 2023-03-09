@@ -53,5 +53,5 @@
 
 - name: change shell
   become: yes
-  command: "chsh -s /bin/zsh {{ effective_user }}"
+  command: "chsh -s /bin/zsh {{ e_username }}"
   when: 'e_shell != "/bin/zsh"'
