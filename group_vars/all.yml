@@ -3,5 +3,3 @@ zsh_path_color_root: red
 
 # https://aur.archlinux.org/paru-bin.git
 aur_helper: paru-bin
-
-alacritty_font_family: monospace
