@@ -1,5 +1,5 @@
 - name: debug
-  # become: yes
+  become: yes
   hosts: all
   roles:
-    - aur-helper
+    - zsh
