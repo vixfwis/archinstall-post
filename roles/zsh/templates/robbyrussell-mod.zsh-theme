@@ -1,5 +1,9 @@
+# username
 PROMPT="%{$fg[{% if e_username == "root" %}red{% else %}green{% endif %}]%}%n"
-PROMPT+=' %{$fg[cyan]%}%~%{$reset_color%} $(git_prompt_info)'
+# hostname
+PROMPT+=" %{$fg[yellow]%}%m"
+# path
+PROMPT+=" %{$fg[cyan]%}%~%{$reset_color%} $(git_prompt_info)"
 
 ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg_bold[blue]%}git:(%{$fg[red]%}"
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
