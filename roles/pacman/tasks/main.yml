@@ -1,0 +1,9 @@
+- name: pacman config
+  become: yes
+  lineinfile:
+    path: /etc/pacman.conf
+    regexp: "{{ item.pattern }}"
+    line: "{{ item.line }}"
+  loop:
+    - { pattern: "^[#\\s]*?ParallelDownloads",        line: "ParallelDownloads = 5" }
+    - { pattern: "^[#\\s]*?Color",                    line: "Color" }

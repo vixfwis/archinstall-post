@@ -13,6 +13,8 @@
       tags: zsh
     - role: aur-helper
       tags: aur-helper
+    - role: pacman
+      tags: pacman
 
 - name: install nvim and zsh plugins for root
   become: yes
