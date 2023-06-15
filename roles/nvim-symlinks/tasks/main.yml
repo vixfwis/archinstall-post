@@ -19,6 +19,7 @@
   pacman:
     name:
       - neovim
+      - base-devel
     state: present
 
 - name: copy nvim symlinks pkgbuild
